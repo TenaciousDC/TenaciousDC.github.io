@@ -1,0 +1,270 @@
+//added bad sticks that decrease score, health counter, a start scene, encouraging messages, and a win screen, a lost screen....
+
+//defining the drawButton function
+var drawButton = function(btn) {
+    noStroke();
+    rectMode(CENTER);
+    fill(255, 98, 0);
+    rect(btn.x, btn.y, btn.width, btn.height, btn.radius);
+    fill(255, 255, 255);
+    textSize(18);
+    textAlign(LEFT, TOP);
+    text("Start Over", btn.x+-42, btn.y+-11);
+};
+
+//define button
+var btn1 = {
+    x: 72,
+    y: 380,
+    width: 90,
+    height: 24,
+    radius: 10
+};
+
+/*var btn2 = {
+    x: 319,
+    y: 379,
+    width: 127,
+    height: 20,
+    radius: 15,
+    }; */
+    
+var scene = 1;
+
+var Beaver = function(x, y) {
+    this.x = x;
+    this.y = y;
+    this.img = getImage("creatures/Hopper-Happy");
+    this.sticks = 0;
+    this.health = 100;
+};
+
+Beaver.prototype.draw = function() {
+    this.y = constrain(this.y, 0, height-50);
+    image(this.img, this.x, this.y, 40, 40);
+};
+
+Beaver.prototype.hop = function() {
+    this.img = getImage("creatures/Hopper-Jumping");
+    this.y -= 5;
+};
+
+Beaver.prototype.fall = function() {
+    this.img = getImage("creatures/Hopper-Cool");
+    this.y += 5;
+};
+
+Beaver.prototype.checkForStickGrab = function(stick) {
+    if ((stick.x >= this.x && stick.x <= (this.x + 40)) &&
+        (stick.y >= this.y && stick.y <= (this.y + 40))) {
+        stick.y = -400;
+        this.sticks++;
+    }
+};
+
+Beaver.prototype.checkForBadStickGrab = function(badStick) {
+    if ((badStick.x >= this.x && badStick.x <= (this.x + 20)) &&
+        (badStick.y >= this.y && badStick.y <= (this.y + 20))) {
+        badStick.y = -400;
+        this.sticks--;
+    }
+};
+
+var beaver = new Beaver(133, 300);
+
+var Baddie = function(x, y, speed) {
+    this.x = x;
+    this.y = y;
+    this.img = getImage("space/minus");
+    this.health = 'Infinity';
+    this.speed = speed || 1;
+};
+
+var punk1 = new Baddie(70,69 );
+var punk2 = new Baddie(200,192 );
+var punks = [punk1, punk2];
+
+Baddie.prototype.draw = function() {
+     fill(60, 0, 255);
+     ellipse(this.x, this.y, 20, 20);
+};
+
+var Stick = function(x, y) {
+    this.x = x;
+    this.y = y;
+};
+
+Stick.prototype.draw = function() {
+    fill(235, 203, 87);
+    rectMode(CENTER);
+    rect(this.x, this.y, 7, 40);
+};
+
+var badStick = function(x, y) {
+    this.x = x;
+    this.y = y;
+};
+
+badStick.prototype.draw = function() {
+    fill(255, 0, 0);
+    rectMode(CENTER);
+    rect(this.x, this.y, 5, 30);
+};
+
+var sticks = [];
+
+for (var i = 0; i < 40; i++) {  
+    sticks.push(new Stick(i * 40 + 300, random(20, 280)));
+}
+
+var badSticks = [];
+
+for (var i = 0; i < 8; i++) {
+    badSticks.push(new badStick(i * 199 + 535, random(40, 250)));
+}
+
+var grassXs = [];
+
+for (var i = 0; i < 25; i++) { 
+    grassXs.push(i*20);
+}
+
+draw = function() {
+    if(scene === 1){
+        rectMode(CORNER);
+        noStroke();
+        background(115, 171, 240);
+        image(getImage("creatures/Hopper-Happy"), 149, 31, 74, 70);
+        fill(147, 230, 23);
+        rect(30, 260, 100, 50, 10);
+        fill(245, 159, 61);
+        rect(270, 200, 100, 50, 10);
+        fill(255, 0, 5);
+        textSize(50);
+        text('Hoppy Beaver!', 40, 160);
+        textSize(20);
+        text('Easy', 59, 291);
+        text('Hard', 300, 231);
+        if(mouseIsPressed && mouseX < 130 && mouseX > 30 && mouseY < 310 && mouseY > 260){
+            beaver.health = 100;
+            for(var k =0; k < punks.length; k++){
+                punks[k].speed = 0.25;
+            }
+            beaver.sticks = 0;
+            scene = 2;
+        }else if(mouseIsPressed && mouseX < 370 && mouseX > 270 && mouseY < 250 && mouseY >                  200){
+                beaver.health = 50;
+            for(var k =0; k < punks.length; k++){
+                punks[k].speed = 0.75;
+                }
+            beaver.sticks = 0;
+            scene = 2;
+        }
+    }
+    else if (scene === 2) {  
+    // static
+    background(227, 254, 255);
+    fill(130, 79, 43);
+    rectMode(CORNER);
+    rect(0, height*0.90, width, height*0.21);
+    textSize(20);
+    fill(245, 12, 245);
+    text("Score: " + beaver.sticks, 255, 20);
+    text("Health:" + beaver.health, 255, 45);
+    
+    // are there 3 ''loops'' below?
+    for (var i = 0; i < grassXs.length; i++) {
+        image(getImage("cute/GemGreen"), grassXs[i], height*0.82, 23, 38);
+        grassXs[i] -= 1;
+        if (grassXs[i] <= -20) {
+            grassXs[i] = width;
+        }
+    }
+    
+    for (var i = 0; i < sticks.length; i++) {
+        sticks[i].draw();
+        beaver.checkForStickGrab(sticks[i]);
+         sticks[i].x -= 1;
+    }
+    
+    for (var i = 0; i < badSticks.length; i++) {
+        badSticks[i].draw();
+        beaver.checkForBadStickGrab(badSticks[i]);
+        badSticks[i].x -=1; 
+    }
+    
+    //encouraging messaging
+    if (beaver.sticks === 10) {
+        fill(255, 0, 0);
+        textSize(30);
+        text("Keep it Up", 50, 200);
+    }
+    
+    if (beaver.sticks === 20) {
+        fill(10, 102, 47);
+        textSize(25);
+        text("Almost there", 100, 120);
+    }
+    if (beaver.sticks > 30) {
+        fill(12, 50, 237);
+        textSize(34);
+        text("Go Champ !!", 90, 70);
+    }
+    if (beaver.health < -5)  {
+        background(240, 223, 223);
+        textSize(40);
+        text('You Lost!', 120, 120);
+    }
+    
+    if (keyIsPressed && keyCode === 0) {
+        beaver.hop();
+    } else {
+        beaver.fall();
+    }
+    
+    for(var j = 0; j < punks.length; j++){
+          if (punks[j].x>410){
+              punks[j].x=0;
+          }
+          if(dist(beaver.x, 0, punks[j].x, 0) < 24 && dist(0, beaver.y, 0, punks[j].y) < 24){
+            beaver.health-=1;
+          }
+          punks[j].x+=punks[j].speed;
+          punks[j].draw();
+        }   
+    
+    if (beaver.sticks >= 38) {
+        background(113, 184, 152);
+        fill(30, 44, 235);
+        textSize(18);
+        text("      Here Are Your Trophies, Champ!", 40, 286);
+         image(getImage("avatars/leaf-red"), 5, 51); 
+         image(getImage("cute/GemOrange"), 263, -27); 
+         image(getImage("avatars/primosaur-seed"), 254, 162);  
+         image(getImage("cute/Star"), 20, 127); 
+         image(getImage("space/girl3"), 120, 0); 
+         image(getImage("cute/CharacterPinkGirl"), 135, 116);
+     }
+     
+beaver.draw();
+drawButton(btn1);
+//drawButton(btn2);
+}
+
+
+mouseClicked = function() {
+   if (mouseX >= btn1.x - (btn1.width/2) && mouseX <= btn1.x + (btn1.width/2) &&
+        mouseY >= btn1.y-btn1.height/2 && mouseY < (btn1.y+btn1.height/2)) {
+    Program.restart();
+    }
+};
+
+/*mouseClicked = function() {
+   if (mouseX >= btn2.x - (btn1.width/2) && mouseX <= btn2.x + (btn1.width/2) &&
+        mouseY >= btn2.y-btn1.height/2 && mouseY < (btn2.y+btn1.height/2)) {
+    Program.restart();
+    }
+
+*/
+};
+
